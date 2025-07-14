@@ -4,28 +4,73 @@
   <meta charset="UTF-8">
   <title>Live Webcams with Map</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha512-sA+z0pN4CGbIVkgk6MkWUgqz9uER5qz/92wQzmk8uRv4HqI4g2nFdlR3z5ZYf5n64cKQLxKrmnA6ZQ6gNmlywQ=="
-    crossorigin=""
-  />
   <style>
-    body { margin: 0; font-family: sans-serif; background-color: #f5f5f5;}
-    .container { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; justify-content: center;}
-    .cam { flex: 1 1 300px; max-width: 400px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;}
-    .cam-content { padding: 15px;}
-    video { width: 100%; height: 200px; background: #000; border-radius: 4px; object-fit: cover;}
-    .cam-title { margin: 10px 0 0 0; font-weight: bold; color: #333;}
-    .cam-status { margin: 5px 0 0 0; font-size: 12px; color: #666;}
+    body { 
+      margin: 0; 
+      font-family: sans-serif; 
+      background-color: #f5f5f5;
+    }
+    .container { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 20px;
+      padding: 20px;
+      justify-content: center;
+    }
+    .cam { 
+      flex: 1 1 300px; 
+      max-width: 400px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .cam-content {
+      padding: 15px;
+    }
+    video { 
+      width: 100%; 
+      height: 200px; 
+      background: #000;
+      border-radius: 4px;
+      object-fit: cover;
+    }
+    .cam-title {
+      margin: 10px 0 0 0;
+      font-weight: bold;
+      color: #333;
+    }
+    .cam-status {
+      margin: 5px 0 0 0;
+      font-size: 12px;
+      color: #666;
+    }
     .status-loading { color: #ff9800; }
     .status-playing { color: #4caf50; }
     .status-error { color: #f44336; }
-    #map { height: 400px; width: 100%; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);}
-    .header { text-align: center; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin: 0;}
-    .map-container { padding: 0 20px;}
-    .error-message { color: #f44336; font-size: 12px; margin-top: 5px; display: none;}
+    .header {
+      text-align: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      margin: 0;
+    }
+    .map-container {
+      padding: 0 20px;
+      text-align: center;
+      margin: 20px 0;
+    }
+    .map-container img {
+      max-width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .error-message {
+      color: #f44336;
+      font-size: 12px;
+      margin-top: 5px;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -67,18 +112,18 @@
 </div>
 
 <div class="map-container">
-  <div id="map"></div>
+  <!-- Replace the src below with your own static map image or a static map service URL -->
+  <img
+    src="https://static-maps.yandex.ru/1.x/?lang=en_US&ll=18.303,54.834&z=15&l=map&size=650,400&pt=18.29917,54.83333,pm2rdm~18.30722,54.83500,pm2blm~18.30639,54.83528,pm2grm"
+    alt="Jastrzębia Góra Map"
+  />
+  <div style="font-size:12px; color:#888; margin-top:4px;">
+    Map: &copy; OpenStreetMap contributors, via Yandex Static Maps
+  </div>
 </div>
 
-<!-- Leaflet JS -->
-<script
-  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-  integrity="sha512-o8UgrxKk/7fU46bk5k0NTFGGfRO/JqXEtvpsFwRDoZ1VaRhI6+94lQoV3VK+E19vDyr4k3Z9Wfa0bYz4zCAc8g=="
-  crossorigin="">
-</script>
 <!-- hls.js from cdnjs -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.12/hls.min.js"></script>
-
 <script>
 function updateStatus(camNumber, status, message = '') {
   const statusElement = document.getElementById(`status${camNumber}`);
@@ -171,44 +216,6 @@ function setupVideoStream(videoId, url, camNumber) {
   }
 }
 
-function initializeMap() {
-  // Check if Leaflet is loaded
-  if (typeof L === 'undefined') {
-    console.error('Leaflet library not loaded');
-    document.getElementById('map').innerHTML = '<p style="text-align: center; padding: 20px; color: #f44336;">Map could not be loaded. Please refresh the page.</p>';
-    return;
-  }
-  
-  // === CAMERA LOCATIONS ===
-  const cams = [
-    { name: "Jastrzębia Góra - Promenada Światowida", coords: [54.83333, 18.29917] },
-    { name: "Jastrzębia Góra - Plaża 1", coords: [54.83500, 18.30722] },
-    { name: "Jastrzębia Góra - Plaża 2", coords: [54.83528, 18.30639] }
-  ];
-  
-  // === INITIALIZE MAP ===
-  const map = L.map('map', {
-    maxBounds: [
-      [54.8325, 18.2950],
-      [54.8360, 18.3100]
-    ],
-    maxBoundsViscosity: 1.0
-  });
-  
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
-  
-  const bounds = L.latLngBounds(cams.map(cam => cam.coords));
-  map.fitBounds(bounds, { padding: [20, 20] });
-  
-  // Add markers with custom icons
-  cams.forEach((cam, index) => {
-    const marker = L.marker(cam.coords).addTo(map);
-    marker.bindPopup(`<b>${cam.name}</b><br>Camera ${index + 1}`);
-  });
-}
-
 function initializeStreams() {
   // === VIDEO STREAMS ===
   const streamUrls = [ 
@@ -232,51 +239,12 @@ function initializeStreams() {
   });
 }
 
-// Wait for all scripts to load
-function waitForLibraries() {
-  let attempts = 0;
-  const maxAttempts = 50;
-  
-  function checkLibraries() {
-    attempts++;
-    
-    if (typeof L !== 'undefined' && typeof Hls !== 'undefined') {
-      // Both libraries loaded
-      initializeMap();
-      initializeStreams();
-    } else if (attempts < maxAttempts) {
-      // Keep trying
-      setTimeout(checkLibraries, 100);
-    } else {
-      // Timeout - try to initialize what we can
-      console.error('Libraries failed to load within timeout');
-      if (typeof L !== 'undefined') {
-        initializeMap();
-      }
-      if (typeof Hls !== 'undefined') {
-        initializeStreams();
-      }
-    }
-  }
-  
-  checkLibraries();
-}
-
-// Use multiple event listeners to ensure initialization
+// Wait for DOM ready
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', waitForLibraries);
+  document.addEventListener('DOMContentLoaded', initializeStreams);
 } else {
-  waitForLibraries();
+  initializeStreams();
 }
-
-window.addEventListener('load', function() {
-  // Fallback initialization if libraries didn't load earlier
-  setTimeout(function() {
-    if (typeof L !== 'undefined' && !document.querySelector('.leaflet-container')) {
-      initializeMap();
-    }
-  }, 1000);
-});
 </script>
 </body>
 </html>
