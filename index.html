@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Live Webcams with Map</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
@@ -12,41 +11,120 @@
     integrity="sha512-sA+z0pN4CGbIVkgk6MkWUgqz9uER5qz/92wQzmk8uRv4HqI4g2nFdlR3z5ZYf5n64cKQLxKrmnA6ZQ6gNmlywQ=="
     crossorigin=""
   />
-
   <style>
-    body { margin: 0; font-family: sans-serif; }
-    .container { display: flex; flex-wrap: wrap; }
-    .cam { flex: 1 1 300px; padding: 10px; }
-    video { width: 100%; height: 200px; background: #000; }
-    #map { height: 400px; width: 100%; margin-top: 20px; }
+    body { 
+      margin: 0; 
+      font-family: sans-serif; 
+      background-color: #f5f5f5;
+    }
+    .container { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 20px;
+      padding: 20px;
+      justify-content: center;
+    }
+    .cam { 
+      flex: 1 1 300px; 
+      max-width: 400px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .cam-content {
+      padding: 15px;
+    }
+    video { 
+      width: 100%; 
+      height: 200px; 
+      background: #000;
+      border-radius: 4px;
+      object-fit: cover;
+    }
+    .cam-title {
+      margin: 10px 0 0 0;
+      font-weight: bold;
+      color: #333;
+    }
+    .cam-status {
+      margin: 5px 0 0 0;
+      font-size: 12px;
+      color: #666;
+    }
+    .status-loading { color: #ff9800; }
+    .status-playing { color: #4caf50; }
+    .status-error { color: #f44336; }
+    
+    #map { 
+      height: 400px; 
+      width: 100%; 
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .header {
+      text-align: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      margin: 0;
+    }
+    
+    .map-container {
+      padding: 0 20px;
+    }
+    
+    .error-message {
+      color: #f44336;
+      font-size: 12px;
+      margin-top: 5px;
+      display: none;
+    }
   </style>
 </head>
 <body>
-
-<h2 style="text-align:center;">Live Webcams & Locations</h2>
-<div class="container">
-
-  <!-- Stream 1 -->
-  <div class="cam">
-    <video id="cam1" controls autoplay muted></video>
-    <p>Jastrzębia Góra - Promenada Światowida</p>
-  </div>
-
-  <!-- Stream 2 -->
-  <div class="cam">
-    <video id="cam2" controls autoplay muted></video>
-    <p>Jastrzębia Góra - Plaża 1</p>
-  </div>
-
-  <!-- Stream 3 -->
-  <div class="cam">
-    <video id="cam3" controls autoplay muted></video>
-    <p>Jastrzębia Góra - Plaża 2</p>
-  </div>
-
+<div class="header">
+  <h1>Live Webcams & Locations</h1>
+  <p>Jastrzębia Góra Beach Area</p>
 </div>
 
-<div id="map"></div>
+<div class="container">
+  <!-- Stream 1 -->
+  <div class="cam">
+    <div class="cam-content">
+      <video id="cam1" controls muted playsinline></video>
+      <div class="cam-title">Jastrzębia Góra - Promenada Światowida</div>
+      <div class="cam-status status-loading" id="status1">Loading...</div>
+      <div class="error-message" id="error1"></div>
+    </div>
+  </div>
+  
+  <!-- Stream 2 -->
+  <div class="cam">
+    <div class="cam-content">
+      <video id="cam2" controls muted playsinline></video>
+      <div class="cam-title">Jastrzębia Góra - Plaża 1</div>
+      <div class="cam-status status-loading" id="status2">Loading...</div>
+      <div class="error-message" id="error2"></div>
+    </div>
+  </div>
+  
+  <!-- Stream 3 -->
+  <div class="cam">
+    <div class="cam-content">
+      <video id="cam3" controls muted playsinline></video>
+      <div class="cam-title">Jastrzębia Góra - Plaża 2</div>
+      <div class="cam-status status-loading" id="status3">Loading...</div>
+      <div class="error-message" id="error3"></div>
+    </div>
+  </div>
+</div>
+
+<div class="map-container">
+  <div id="map"></div>
+</div>
 
 <!-- Leaflet JS -->
 <script
@@ -54,19 +132,116 @@
   integrity="sha512-o8UgrxKk/7fU46bk5k0NTFGGfRO/JqXEtvpsFwRDoZ1VaRhI6+94lQoV3VK+E19vDyr4k3Z9Wfa0bYz4zCAc8g=="
   crossorigin="">
 </script>
-
-<!-- hls.js -->
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<!-- hls.js from cdnjs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.12/hls.min.js"></script>
 
 <script>
-window.onload = function () {
+function updateStatus(camNumber, status, message = '') {
+  const statusElement = document.getElementById(`status${camNumber}`);
+  const errorElement = document.getElementById(`error${camNumber}`);
+  
+  statusElement.className = `cam-status status-${status}`;
+  
+  switch(status) {
+    case 'loading':
+      statusElement.textContent = 'Loading...';
+      errorElement.style.display = 'none';
+      break;
+    case 'playing':
+      statusElement.textContent = 'Live';
+      errorElement.style.display = 'none';
+      break;
+    case 'error':
+      statusElement.textContent = 'Offline';
+      errorElement.textContent = message;
+      errorElement.style.display = 'block';
+      break;
+  }
+}
+
+function setupVideoStream(videoId, url, camNumber) {
+  const video = document.getElementById(videoId);
+  
+  if (!video) {
+    console.error(`Video element ${videoId} not found`);
+    return;
+  }
+  
+  // Add event listeners for video events
+  video.addEventListener('loadstart', () => updateStatus(camNumber, 'loading'));
+  video.addEventListener('canplay', () => updateStatus(camNumber, 'playing'));
+  video.addEventListener('error', (e) => {
+    console.error(`Video error for ${videoId}:`, e);
+    updateStatus(camNumber, 'error', 'Stream unavailable');
+  });
+  
+  if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+    const hls = new Hls({
+      enableWorker: false,
+      lowLatencyMode: true,
+      backBufferLength: 90
+    });
+    
+    hls.loadSource(url);
+    hls.attachMedia(video);
+    
+    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+      console.log(`HLS manifest parsed for ${videoId}`);
+      video.play().catch(e => {
+        console.log(`Autoplay prevented for ${videoId}:`, e);
+        updateStatus(camNumber, 'playing');
+      });
+    });
+    
+    hls.on(Hls.Events.ERROR, function(event, data) {
+      console.error(`HLS error for ${videoId}:`, data);
+      if (data.fatal) {
+        updateStatus(camNumber, 'error', `Stream error: ${data.type}`);
+        switch(data.type) {
+          case Hls.ErrorTypes.NETWORK_ERROR:
+            console.log('Network error, trying to recover...');
+            hls.startLoad();
+            break;
+          case Hls.ErrorTypes.MEDIA_ERROR:
+            console.log('Media error, trying to recover...');
+            hls.recoverMediaError();
+            break;
+          default:
+            hls.destroy();
+            break;
+        }
+      }
+    });
+    
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    // Safari native HLS support
+    video.src = url;
+    video.addEventListener('loadedmetadata', () => {
+      video.play().catch(e => {
+        console.log(`Autoplay prevented for ${videoId}:`, e);
+        updateStatus(camNumber, 'playing');
+      });
+    });
+  } else {
+    updateStatus(camNumber, 'error', 'HLS not supported in this browser');
+  }
+}
+
+function initializeMap() {
+  // Check if Leaflet is loaded
+  if (typeof L === 'undefined') {
+    console.error('Leaflet library not loaded');
+    document.getElementById('map').innerHTML = '<p style="text-align: center; padding: 20px; color: #f44336;">Map could not be loaded. Please refresh the page.</p>';
+    return;
+  }
+  
   // === CAMERA LOCATIONS ===
   const cams = [
     { name: "Jastrzębia Góra - Promenada Światowida", coords: [54.83333, 18.29917] },
     { name: "Jastrzębia Góra - Plaża 1", coords: [54.83500, 18.30722] },
     { name: "Jastrzębia Góra - Plaża 2", coords: [54.83528, 18.30639] }
   ];
-
+  
   // === INITIALIZE MAP ===
   const map = L.map('map', {
     maxBounds: [
@@ -75,54 +250,89 @@ window.onload = function () {
     ],
     maxBoundsViscosity: 1.0
   });
-
+  
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
-
+  
   const bounds = L.latLngBounds(cams.map(cam => cam.coords));
-  map.fitBounds(bounds);
-
-  cams.forEach(cam => {
-    L.marker(cam.coords).addTo(map).bindPopup(cam.name);
+  map.fitBounds(bounds, { padding: [20, 20] });
+  
+  // Add markers with custom icons
+  cams.forEach((cam, index) => {
+    const marker = L.marker(cam.coords).addTo(map);
+    marker.bindPopup(`<b>${cam.name}</b><br>Camera ${index + 1}`);
   });
+}
 
+function initializeStreams() {
   // === VIDEO STREAMS ===
+  const streamUrls = [
+    'https://s29.ipcamlive.com/streams/1d5vsl9jtevx7rbgu/stream.m3u8',
+    'https://ls.tkchopin.pl:9043/live/jastrzebiagora_plaza_static.stream/chunklist_w1432264733.m3u8',
+    'const url3 = 'https://hoktastream1.webcamera.pl/wladyslawowo_cam_250100/wladyslawowo_cam_250100.stream/chunklist_w2783826480.m3u8';
+  ];
+  
+  // Setup video streams
+  streamUrls.forEach((url, index) => {
+    setupVideoStream(`cam${index + 1}`, url, index + 1);
+  });
+  
+  // Add click handlers to restart streams
+  document.querySelectorAll('video').forEach((video, index) => {
+    video.addEventListener('click', () => {
+      if (video.paused) {
+        video.play().catch(e => console.log('Play failed:', e));
+      }
+    });
+  });
+}
 
-  // Cam 1
-  const video1 = document.getElementById('cam1');
-  const url1 = 'https://s29.ipcamlive.com/streams/1d5vsl9jtevx7rbgu/stream.m3u8';
-  if (Hls.isSupported()) {
-    const hls1 = new Hls();
-    hls1.loadSource(url1);
-    hls1.attachMedia(video1);
-  } else if (video1.canPlayType('application/vnd.apple.mpegurl')) {
-    video1.src = url1;
+// Wait for all scripts to load
+function waitForLibraries() {
+  let attempts = 0;
+  const maxAttempts = 50;
+  
+  function checkLibraries() {
+    attempts++;
+    
+    if (typeof L !== 'undefined' && typeof Hls !== 'undefined') {
+      // Both libraries loaded
+      initializeMap();
+      initializeStreams();
+    } else if (attempts < maxAttempts) {
+      // Keep trying
+      setTimeout(checkLibraries, 100);
+    } else {
+      // Timeout - try to initialize what we can
+      console.error('Libraries failed to load within timeout');
+      if (typeof L !== 'undefined') {
+        initializeMap();
+      }
+      if (typeof Hls !== 'undefined') {
+        initializeStreams();
+      }
+    }
   }
+  
+  checkLibraries();
+}
 
-  // Cam 2
-  const video2 = document.getElementById('cam2');
-  const url2 = 'https://ls.tkchopin.pl:9043/live/jastrzebiagora_plaza_static.stream/chunklist_w1432264733.m3u8';
-  if (Hls.isSupported()) {
-    const hls2 = new Hls();
-    hls2.loadSource(url2);
-    hls2.attachMedia(video2);
-  } else if (video2.canPlayType('application/vnd.apple.mpegurl')) {
-    video2.src = url2;
-  }
+// Use multiple event listeners to ensure initialization
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', waitForLibraries);
+} else {
+  waitForLibraries();
+}
 
-  // Cam 3 (replace this URL if needed)
-  const video3 = document.getElementById('cam3');
-  const url3 = 'https://hoktastream1.webcamera.pl/wladyslawowo_cam_250100/wladyslawowo_cam_250100.stream/chunks.m3u8';
-  if (Hls.isSupported()) {
-    const hls3 = new Hls();
-    hls3.loadSource(url3);
-    hls3.attachMedia(video3);
-  } else if (video3.canPlayType('application/vnd.apple.mpegurl')) {
-    video3.src = url3;
-  }
-};
+window.addEventListener('load', function() {
+  // Fallback initialization if libraries didn't load earlier
+  setTimeout(function() {
+    if (typeof L !== 'undefined' && !document.querySelector('.leaflet-container')) {
+      initializeMap();
+    }
+  }, 1000);
+});
 </script>
-
 </body>
 </html>
