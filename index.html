@@ -17,7 +17,6 @@
 
 <h2 style="text-align:center;">Live Webcams & Locations</h2>
 <div class="container">
-
   <!-- Stream 1 -->
   <div class="cam">
     <video id="cam1" controls autoplay muted></video>
@@ -35,7 +34,6 @@
     <video id="cam3" controls autoplay muted></video>
     <p>Jastrzębia Góra - Plaża 2</p>
   </div>
-
 </div>
 
 <div id="map"></div>
@@ -46,21 +44,29 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
 <script>
-  // Initialize map
-  const map = L.map('map', {
-  maxBounds: [
-    [54.8325, 18.2950],  // Southwest corner
-    [54.8360, 18.3100]   // Northeast corner
-  ],
-  maxBoundsViscosity: 1.0  // Prevent dragging out of bounds
-});
-
   const cams = [
     { name: "Jastrzębia Góra - Promenada Światowida", coords: [54.83333, 18.29917] },
     { name: "Jastrzębia Góra - Plaża 1", coords: [54.83500, 18.30722] },
     { name: "Jastrzębia Góra - Plaża 2", coords: [54.83528, 18.30639] }
   ];
 
+  const map = L.map('map', {
+    maxBounds: [
+      [54.8325, 18.2950], // Southwest
+      [54.8360, 18.3100]  // Northeast
+    ],
+    maxBoundsViscosity: 1.0
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  // Fit map to markers
+  const bounds = L.latLngBounds(cams.map(cam => cam.coords));
+  map.fitBounds(bounds);
+
+  // Add markers
   cams.forEach(cam => {
     L.marker(cam.coords).addTo(map).bindPopup(cam.name);
   });
@@ -78,26 +84,4 @@
 
   // Stream 2
   const video2 = document.getElementById('cam2');
-  const url2 = 'https://ls.tkchopin.pl:9043/live/jastrzebiagora_plaza_static.stream/chunklist_w1432264733.m3u8';
-  if (Hls.isSupported()) {
-    const hls2 = new Hls();
-    hls2.loadSource(url2);
-    hls2.attachMedia(video2);
-  } else if (video2.canPlayType('application/vnd.apple.mpegurl')) {
-    video2.src = url2;
-  }
-
-// Stream 3
-const video3 = document.getElementById('cam3');
-const url3 = 'https://hoktastream1.webcamera.pl/wladyslawowo_cam_250100/wladyslawowo_cam_250100.stream/chunks.m3u8';
-if (Hls.isSupported()) {
-  const hls3 = new Hls();
-  hls3.loadSource(url3);
-  hls3.attachMedia(video3);
-} else if (video3.canPlayType('application/vnd.apple.mpegurl')) {
-  video3.src = url3;
-}
-</script>
-
-</body>
-</html>
+  const ur
