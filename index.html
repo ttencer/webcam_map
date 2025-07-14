@@ -4,7 +4,15 @@
   <meta charset="UTF-8">
   <title>Live Webcams with Map</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha512-sA+z0pN4CGbIVkgk6MkWUgqz9uER5qz/92wQzmk8uRv4HqI4g2nFdlR3z5ZYf5n64cKQLxKrmnA6ZQ6gNmlywQ=="
+    crossorigin=""
+  />
+
   <style>
     body { margin: 0; font-family: sans-serif; }
     .container { display: flex; flex-wrap: wrap; }
@@ -17,6 +25,7 @@
 
 <h2 style="text-align:center;">Live Webcams & Locations</h2>
 <div class="container">
+
   <!-- Stream 1 -->
   <div class="cam">
     <video id="cam1" controls autoplay muted></video>
@@ -34,26 +43,35 @@
     <video id="cam3" controls autoplay muted></video>
     <p>Jastrzębia Góra - Plaża 2</p>
   </div>
+
 </div>
 
 <div id="map"></div>
 
 <!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha512-o8UgrxKk/7fU46bk5k0NTFGGfRO/JqXEtvpsFwRDoZ1VaRhI6+94lQoV3VK+E19vDyr4k3Z9Wfa0bYz4zCAc8g=="
+  crossorigin="">
+</script>
+
 <!-- hls.js -->
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
 <script>
+window.onload = function () {
+  // === CAMERA LOCATIONS ===
   const cams = [
     { name: "Jastrzębia Góra - Promenada Światowida", coords: [54.83333, 18.29917] },
     { name: "Jastrzębia Góra - Plaża 1", coords: [54.83500, 18.30722] },
     { name: "Jastrzębia Góra - Plaża 2", coords: [54.83528, 18.30639] }
   ];
 
+  // === INITIALIZE MAP ===
   const map = L.map('map', {
     maxBounds: [
-      [54.8325, 18.2950], // Southwest
-      [54.8360, 18.3100]  // Northeast
+      [54.8325, 18.2950],
+      [54.8360, 18.3100]
     ],
     maxBoundsViscosity: 1.0
   });
@@ -62,16 +80,16 @@
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  // Fit map to markers
   const bounds = L.latLngBounds(cams.map(cam => cam.coords));
   map.fitBounds(bounds);
 
-  // Add markers
   cams.forEach(cam => {
     L.marker(cam.coords).addTo(map).bindPopup(cam.name);
   });
 
-  // Stream 1
+  // === VIDEO STREAMS ===
+
+  // Cam 1
   const video1 = document.getElementById('cam1');
   const url1 = 'https://s29.ipcamlive.com/streams/1d5vsl9jtevx7rbgu/stream.m3u8';
   if (Hls.isSupported()) {
@@ -82,6 +100,29 @@
     video1.src = url1;
   }
 
-  // Stream 2
+  // Cam 2
   const video2 = document.getElementById('cam2');
-  const ur
+  const url2 = 'https://ls.tkchopin.pl:9043/live/jastrzebiagora_plaza_static.stream/chunklist_w1432264733.m3u8';
+  if (Hls.isSupported()) {
+    const hls2 = new Hls();
+    hls2.loadSource(url2);
+    hls2.attachMedia(video2);
+  } else if (video2.canPlayType('application/vnd.apple.mpegurl')) {
+    video2.src = url2;
+  }
+
+  // Cam 3 (replace this URL if needed)
+  const video3 = document.getElementById('cam3');
+  const url3 = 'https://hoktastream1.webcamera.pl/wladyslawowo_cam_250100/wladyslawowo_cam_250100.stream/chunks.m3u8';
+  if (Hls.isSupported()) {
+    const hls3 = new Hls();
+    hls3.loadSource(url3);
+    hls3.attachMedia(video3);
+  } else if (video3.canPlayType('application/vnd.apple.mpegurl')) {
+    video3.src = url3;
+  }
+};
+</script>
+
+</body>
+</html>
