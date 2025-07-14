@@ -47,10 +47,13 @@
 
 <script>
   // Initialize map
-  const map = L.map('map').setView([54.8, 18.3], 16);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+  const map = L.map('map', {
+  maxBounds: [
+    [54.8325, 18.2950],  // Southwest corner
+    [54.8360, 18.3100]   // Northeast corner
+  ],
+  maxBoundsViscosity: 1.0  // Prevent dragging out of bounds
+});
 
   const cams = [
     { name: "Jastrzębia Góra - Promenada Światowida", coords: [54.83333, 18.29917] },
