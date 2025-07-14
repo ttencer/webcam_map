@@ -1,11 +1,10 @@
-```html
-
-
-
-  
-  Live Webcams
-  
-  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Live Webcams</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
     body { 
       margin: 0; 
       font-family: sans-serif; 
@@ -62,49 +61,49 @@
       margin-top: 5px;
       display: none;
     }
-  
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Live Webcams</h1>
+    <p>Jastrzębia Góra Beach Area</p>
+  </div>
 
+  <div class="container">
+    <!-- Stream 1 -->
+    <div class="cam">
+      <div class="cam-content">
+        <video id="cam1" controls muted playsinline></video>
+        <div class="cam-title">Jastrzębia Góra - Promenada Światowida</div>
+        <div class="cam-status status-loading" id="status1">Loading...</div>
+        <div class="error-message" id="error1"></div>
+      </div>
+    </div>
+    
+    <!-- Stream 2 -->
+    <div class="cam">
+      <div class="cam-content">
+        <video id="cam2" controls muted playsinline></video>
+        <div class="cam-title">Jastrzębia Góra - Plaża 1</div>
+        <div class="cam-status status-loading" id="status2">Loading...</div>
+        <div class="error-message" id="error2"></div>
+      </div>
+    </div>
+    
+    <!-- Stream 3 -->
+    <div class="cam">
+      <div class="cam-content">
+        <video id="cam3" controls muted playsinline></video>
+        <div class="cam-title">Jastrzębia Góra - Plaża 2</div>
+        <div class="cam-status status-loading" id="status3">Loading...</div>
+        <div class="error-message" id="error3"></div>
+      </div>
+    </div>
+  </div>
 
-  
-    Live Webcams
-    Jastrzębia Góra Beach Area
-  
-
-  
-    
-    
-      
-        
-        Jastrzębia Góra - Promenada Światowida
-        Loading...
-        
-      
-    
-    
-    
-    
-      
-        
-        Jastrzębia Góra - Plaża 1
-        Loading...
-        
-      
-    
-    
-    
-    
-      
-        
-        Jastrzębia Góra - Plaża 2
-        Loading...
-        
-      
-    
-  
-
-  
-  
-  
+  <!-- hls.js from cdnjs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.12/hls.min.js"></script>
+  <script>
     function updateStatus(camNumber, status, message = '') {
       const statusElement = document.getElementById(`status${camNumber}`);
       const errorElement = document.getElementById(`error${camNumber}`);
@@ -214,7 +213,6 @@
     } else {
       initializeStreams();
     }
-  
-
-
-```
+  </script>
+</body>
+</html>
